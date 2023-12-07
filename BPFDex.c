@@ -10,12 +10,12 @@ struct unpacking_data
     unsigned int arg2;
     char magic[8];
 };
-BPF_PERF_OUTPUT(trace_event);
+BPF_PERF_OUTPUT(Dex_event);
 BPF_ARRAY(UID, int, 1);
-BPF_HASH(dex_array, int, char*, 10240)
+BPF_HASH(dex_array, int,unsigned char*, 10240)
 int trace_DexOpen(struct pt_regs *ctx)
 {
-    struct event_data current_data;
+    struct unpacking_data current_data;
     __builtin_memset(&current_data, 0, sizeof(current_data));
     current_data.uid = bpf_get_current_uid_gid();
     int key = 0;
@@ -37,12 +37,14 @@ int trace_DexOpen(struct pt_regs *ctx)
     int size = (int)current_data.arg2;
     bpf_probe_read_user_str(&current_data.magic, sizeof(current_data.magic),
                             (char *)(current_data.arg1));
-    trace_event.perf_submit(ctx, &current_data, sizeof(current_data));
+    Dex_event.perf_submit(ctx, &current_data, sizeof(current_data));
+  //use probe_read to dump Dex data
+  /*
    unsigned char dex_data[420];
    int index=0;
    u64 addr=current_data.arg1;
 # pragma unroll
-  for(size ;t>0;size-=420){
+  for(size ;size>0;size-=420){
   bpf_probe_read(&dex_data,sizeof(dex_data),addr);
   dex_array.update(&index, &dex_data);
   index++;
@@ -51,5 +53,6 @@ int trace_DexOpen(struct pt_regs *ctx)
   size=-size;
   bpf_probe_read(&dex_data,size,addr);
   dex_array.update(&index, &dex_data);
-    return 0;
+  */
+  return 0;
 }
