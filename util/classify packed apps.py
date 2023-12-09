@@ -24,21 +24,14 @@ for i in list1:
 for i in list2:
     apk_path = i
     package_name2 .append(extract_package_name(apk_path))
-# packer_path=[r'D:\数据集F-Droid\ali',r'D:\数据集F-Droid\baidu',r'D:\数据集F-Droid\bangcle',r'D:\数据集F-Droid\ijiami',r'D:\数据集F-Droid\tencent',r'D:\数据集F-Droid\qihoo']
-# for i in packer_path:
-#     apk_list=[]
-#     list_files(i,apk_list)
-#     for j in apk_list:
-#         package=extract_package_name(j)
-#         if(package in package_name1 ):
-#             shutil.copy(j, r'D:\数据集F-Droid\P-22-p\{1}-{0}.apk'.format(package,os.path.basename(i)))
-#         if(package in package_name2):
-#              shutil.copy(j, r'D:\数据集F-Droid\P-23-p\{1}-{0}.apk'.format(package,os.path.basename(i)))
-list_=[]
-list_files(r'D:\数据集F-Droid\P-22-p',list_)
-for i in list_:
-    if('tencent'in i):
-        for j in package_name1:
-            if j in i:
-                package_name1.remove(j)
-print(package_name1) 
+ packer_path=[r'D:\数据集F-Droid\ali',r'D:\数据集F-Droid\baidu',r'D:\数据集F-Droid\bangcle',r'D:\数据集F-Droid\ijiami',r'D:\数据集F-Droid\tencent',r'D:\数据集F-Droid\qihoo']
+ for i in packer_path:
+     apk_list=[]
+     list_files(i,apk_list)
+     for j in apk_list:
+         package=extract_package_name(j)
+         if(package in package_name1 ):
+             shutil.copy(j, r'D:\数据集F-Droid\P-22-p\{1}-{0}.apk'.format(package,os.path.basename(i)))
+         if(package in package_name2):
+              shutil.copy(j, r'D:\数据集F-Droid\P-23-p\{1}-{0}.apk'.format(package,os.path.basename(i)))
+
