@@ -91,8 +91,9 @@ def Dex_event(cpu, data, size):
 def CodeItem_event(cpu, data, size):
     global pid
     event = bpf["CodeItem_event"].event(data)
-    Dump_ins_via_mem(event.addr,event.ins_size_,pid)
-
+    if(event.addr not in ins_addr_list):
+        Dump_ins_via_mem(event.addr,event.ins_size_,pid)
+    
 
 def Dump_Dex_via_mem(pid, addr, size):
     global dex_index, size_list, dex_array
@@ -112,12 +113,20 @@ def Dump_Dex_via_mem(pid, addr, size):
 
 
 def final_Dex_process():
+    dex_record=open(file="dex_record.txt", mode="w")
     for i in range(dex_index):
         dex = open(file="{0}.dex".format(i), mode="wb")
         dex.write(dex_array[i])
         dex.close()
+        dex_record.write("{0}.dex   addr:{1}\n".format(i,addr_list[i]))
+    dex_record.close()
 
-
+def final_ins_process():
+    ins = open(file="ins", mode="w")
+    for i in range(len(ins_array)):
+        ins.write("addr:"+ins_addr_list[i]+"    ins:"+ins_array[i]+"\n")
+    ins.close()
+        
 # def Dump_Dex_via_prob(probe_type):
 #     global dex_array,dex_index
 #     if(probe_type==1):
@@ -271,4 +280,5 @@ try:
     run()
 except KeyboardInterrupt:
     final_Dex_process()
+    final_ins_process()
     exit()

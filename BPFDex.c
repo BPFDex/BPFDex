@@ -21,6 +21,11 @@ struct CodeItem {
   u64 addr;
   // unsigned short  insns_[1];                  //uint16_t
 };
+struct Behavior {
+  char* tag;
+  char* arg1;
+  char* arg2;          
+};
 BPF_PERF_OUTPUT(Dex_event);
 BPF_PERF_OUTPUT(CodeItem_event);
 BPF_ARRAY(UID, int, 1);
@@ -229,6 +234,103 @@ int trace_ExecuteGoto(struct pt_regs *ctx)
                         (void *)(code_item_addr));
     u64 insns_addr = code_item_addr + 0x10;
     current_data.addr=insns_addr;
+    CodeItem_event.perf_submit(ctx, &current_data, sizeof(current_data));
+    return 0;
+}
+
+int trace_ExecuteGoto(struct pt_regs *ctx)
+{
+    struct CodeItem current_data;
+    __builtin_memset(&current_data, 0, sizeof(current_data));
+    current_data.uid = bpf_get_current_uid_gid();
+    int key = 0;
+    int uid = 0;
+    int *uid_map = UID.lookup(&key);
+    if (uid_map)
+    {
+        uid = *uid_map;
+    }
+    if (current_data.uid != uid)
+    {
+        return 0;
+    }
+    u64 code_item_addr = (unsigned int)PT_REGS_PARM2(ctx);
+    bpf_probe_read_user(&current_data, sizeof(current_data),
+                        (void *)(code_item_addr));
+    u64 insns_addr = code_item_addr + 0x10;
+    current_data.addr=insns_addr;
+    CodeItem_event.perf_submit(ctx, &current_data, sizeof(current_data));
+    return 0;
+}
+
+int trace_ExecuteSwith(struct pt_regs *ctx)
+{
+    struct CodeItem current_data;
+    __builtin_memset(&current_data, 0, sizeof(current_data));
+    current_data.uid = bpf_get_current_uid_gid();
+    int key = 0;
+    int uid = 0;
+    int *uid_map = UID.lookup(&key);
+    if (uid_map)
+    {
+        uid = *uid_map;
+    }
+    if (current_data.uid != uid)
+    {
+        return 0;
+    }
+    u64 code_item_addr = (unsigned int)PT_REGS_PARM2(ctx);
+    bpf_probe_read_user(&current_data, sizeof(current_data),
+                        (void *)(code_item_addr));
+    u64 insns_addr = code_item_addr + 0x10;
+    current_data.addr=insns_addr;
+    CodeItem_event.perf_submit(ctx, &current_data, sizeof(current_data));
+    return 0;
+}
+
+int trace_open(struct pt_regs *ctx)
+{
+    struct Behavior current_data;
+    __builtin_memset(&current_data, 0, sizeof(current_data));
+    u32 _uid = bpf_get_current_uid_gid();
+    int key = 0;
+    int uid = 0;
+    int *uid_map = UID.lookup(&key);
+    if (uid_map)
+    {
+        uid = *uid_map;
+    }
+    if (_uid != uid)
+    {
+        return 0;
+    }
+    current_data.tag="open";
+    current_data.arg1 = (char*)PT_REGS_PARM1(ctx);
+    current_data.arg2 = (char*)PT_REGS_PARM2(ctx);
+    CodeItem_event.perf_submit(ctx, &current_data, sizeof(current_data));
+    return 0;
+}
+
+
+int trace_fopen(struct pt_regs *ctx)
+{
+    struct Behavior current_data;
+    __builtin_memset(&current_data, 0, sizeof(current_data));
+    u32 _uid = bpf_get_current_uid_gid();
+    int key = 0;
+    int uid = 0;
+    int *uid_map = UID.lookup(&key);
+    if (uid_map)
+    {
+        uid = *uid_map;
+    }
+    if (_uid != uid)
+    {
+        return 0;
+    }
+    current_data.tag="fopen";
+    current_data.arg1 = (char*)PT_REGS_PARM1(ctx);
+    current_data.arg2 = (char*)PT_REGS_PARM2(ctx);
     CodeItem_event.perf_submit(ctx, &current_data, sizeof(current_data));
     return 0;
 }
