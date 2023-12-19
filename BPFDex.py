@@ -40,6 +40,9 @@ dex_array = []
 ins_array=[]
 ins_addr_list=[]
 pid=0
+behavior=[]
+arg1=[]
+arg2=[]
 
 parser = argparse.ArgumentParser(description="unpacking Android apps by eBPF")
 parser.add_argument("uid", help="uid of the target app")
@@ -94,6 +97,45 @@ def CodeItem_event(cpu, data, size):
     if(event.addr not in ins_addr_list):
         Dump_ins_via_mem(event.addr,event.ins_size_,pid)
     
+def Behavior_event(cpu, data, size):
+    global behavior,arg1,arg2
+    event = bpf["Behavior_event"].event(data)
+    behavior.append(event.tag)
+    if(event.tag==b'open'):
+        arg1.append(event.arg1)
+    elif(event.tag==b'fopen'):
+        arg1.append(event.arg1)
+    elif(event.tag==b'openat'):
+        arg2.append(event.arg2)
+    elif(event.tag==b'sys_proper_get'):
+        arg1.append(event.arg1)
+    elif(event.tag==b'sys_proper_read'):
+        arg1.append(event.arg1)
+    elif(event.tag==b'strstr'):
+        arg1.append(event.arg1)
+        arg2.append(event.arg2)
+    elif(event.tag==b'strcmp'):
+        arg1.append(event.arg1)
+        arg2.append(event.arg2)
+    elif(event.tag==b'strncmp'):
+        arg1.append(event.arg1)
+        arg2.append(event.arg2)
+    elif(event.tag==b'gDebugger'):
+        pass
+    elif(event.tag==b'gettimeofday'):
+        pass
+    elif(event.tag==b'time'):
+        pass
+    elif(event.tag==b'dlsym'):
+        arg2.append(event.arg2)
+    elif(event.tag==b'mprotect'):
+        pass
+    elif(event.tag==b'execve'):
+        arg1.append(event.arg1)
+        arg2.append(event.arg2)
+    elif(event.tag==b'access'):
+        arg1.append(event.arg1)
+
 
 def Dump_Dex_via_mem(pid, addr, size):
     global dex_index, size_list, dex_array
@@ -126,6 +168,59 @@ def final_ins_process():
     for i in range(len(ins_array)):
         ins.write("addr:"+ins_addr_list[i]+"    ins:"+ins_array[i]+"\n")
     ins.close()
+
+def final_behavior_process():
+    global behavior,arg1,arg2
+    behavior_record=open(file="behavior_record.txt", mode="w")
+    arg1_index=0
+    arg2_index=0
+    for i in behavior:
+        if(i==b'open'):
+            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
+            arg1_index+=1
+        elif(i==b'fopen'):
+            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
+            arg1_index+=1
+        elif(i==b'openat'):
+            behavior_record.write(i.decode('utf-8')+"  arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            arg2_index+=1
+        elif(i==b'sys_proper_get'):
+            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
+            arg1_index+=1
+        elif(i==b'sys_proper_read'):
+            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
+            arg1_index+=1
+        elif(i==b'strstr'):
+            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"   arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            arg1_index+=1
+            arg2_index+=1
+        elif(i==b'strcmp'):
+            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"   arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            arg1_index+=1
+            arg2_index+=1
+        elif(i==b'strncmp'):
+            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"   arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            arg1_index+=1
+            arg2_index+=1
+        elif(i==b'gDebugger'):
+            behavior_record.write(i.decode('utf-8')+"\n")
+        elif(i==b'gettimeofday'):
+            behavior_record.write(i.decode('utf-8')+"\n")
+        elif(i==b'time'):
+            behavior_record.write(i.decode('utf-8')+"\n")
+        elif(i==b'dlsym'):
+            behavior_record.write(i.decode('utf-8')+"  arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            arg2_index+=1
+        elif(i==b'mprotect'):
+            behavior_record.write(i.decode('utf-8')+"\n")
+        elif(i==b'execve'):
+            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"   arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            arg1_index+=1
+            arg2_index+=1
+        elif(i==b'access'):
+            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
+            arg1_index+=1
+
         
 # def Dump_Dex_via_prob(probe_type):
 #     global dex_array,dex_index
@@ -272,6 +367,7 @@ def run():
             bpf.attach_uprobe(name=libc_path, sym=access_sym, fn_name="trace_access")
     bpf["Dex_event"].open_perf_buffer(Dex_event)
     bpf["CodeItem_event"].open_perf_buffer(CodeItem_event)
+    bpf["Behavior_event"].open_perf_buffer(Behavior_event)
     while True:
         bpf.perf_buffer_poll()
 
@@ -281,4 +377,5 @@ try:
 except KeyboardInterrupt:
     final_Dex_process()
     final_ins_process()
+    final_behavior_process()
     exit()
