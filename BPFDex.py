@@ -75,7 +75,7 @@ def Dex_event(cpu, data, size):
     global size_list, addr_list,pid
     event = bpf["Dex_event"].event(data)
     print(
-        "pid:{1}     tgid:{2}     uid:{6}    comm:{0}     arg1:{3}    arg2:{4}     magic:{5}".format(
+        "pid:{1}     tgid:{2}     uid:{6}    comm:{0}   ,arg1:{3}  ,arg2:{4}     magic:{5}".format(
             event.comm,
             event.pid,
             event.tgid,
@@ -160,13 +160,13 @@ def final_Dex_process():
         dex = open(file="{0}.dex".format(i), mode="wb")
         dex.write(dex_array[i])
         dex.close()
-        dex_record.write("{0}.dex   addr:{1}\n".format(i,addr_list[i]))
+        dex_record.write("{0}.dex,addr:{1},size:{2}\n".format(i,addr_list[i],size_list[i]))
     dex_record.close()
 
 def final_ins_process():
     ins = open(file="ins", mode="w")
     for i in range(len(ins_array)):
-        ins.write("addr:"+ins_addr_list[i]+"    ins:"+ins_array[i]+"\n")
+        ins.write("addr:"+ins_addr_list[i]+",ins:"+ins_array[i]+"\n")
     ins.close()
 
 def final_behavior_process():
@@ -176,30 +176,30 @@ def final_behavior_process():
     arg2_index=0
     for i in behavior:
         if(i==b'open'):
-            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
             arg1_index+=1
         elif(i==b'fopen'):
-            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
             arg1_index+=1
         elif(i==b'openat'):
-            behavior_record.write(i.decode('utf-8')+"  arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
             arg2_index+=1
         elif(i==b'sys_proper_get'):
-            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
             arg1_index+=1
         elif(i==b'sys_proper_read'):
-            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
             arg1_index+=1
         elif(i==b'strstr'):
-            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"   arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg1:"+arg1[arg1_index].decode('utf-8')+" ,arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
             arg1_index+=1
             arg2_index+=1
         elif(i==b'strcmp'):
-            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"   arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg1:"+arg1[arg1_index].decode('utf-8')+" ,arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
             arg1_index+=1
             arg2_index+=1
         elif(i==b'strncmp'):
-            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"   arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg1:"+arg1[arg1_index].decode('utf-8')+" ,arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
             arg1_index+=1
             arg2_index+=1
         elif(i==b'gDebugger'):
@@ -209,16 +209,16 @@ def final_behavior_process():
         elif(i==b'time'):
             behavior_record.write(i.decode('utf-8')+"\n")
         elif(i==b'dlsym'):
-            behavior_record.write(i.decode('utf-8')+"  arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
             arg2_index+=1
         elif(i==b'mprotect'):
             behavior_record.write(i.decode('utf-8')+"\n")
         elif(i==b'execve'):
-            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"   arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg1:"+arg1[arg1_index].decode('utf-8')+",arg2:"+arg2[arg2_index].decode('utf-8')+"\n")
             arg1_index+=1
             arg2_index+=1
         elif(i==b'access'):
-            behavior_record.write(i.decode('utf-8')+"  arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
+            behavior_record.write(i.decode('utf-8')+",arg1:"+arg1[arg1_index].decode('utf-8')+"\n")
             arg1_index+=1
 
         
